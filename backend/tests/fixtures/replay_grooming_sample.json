@@ -1,0 +1,20 @@
+{
+  "conversation_id": "p1_tuning_grooming",
+  "label": "grooming",
+  "title": "Person 1 tuning sample — trust to isolation (fictional, restrained)",
+  "participants": {
+    "A": { "role": "adult", "display": "Stranger" },
+    "B": { "role": "minor", "display": "Jordan, 13" }
+  },
+  "messages": [
+    { "turn": 0, "speaker": "A", "text": "hey! saw you're into that game too, your builds are awesome", "t_offset_sec": 0 },
+    { "turn": 1, "speaker": "B", "text": "haha thanks i just started last month", "t_offset_sec": 22 },
+    { "turn": 2, "speaker": "A", "text": "you're really talented for your age. how old are you again?", "t_offset_sec": 48 },
+    { "turn": 3, "speaker": "B", "text": "13. my friends are all bad at it lol", "t_offset_sec": 70 },
+    { "turn": 4, "speaker": "A", "text": "honestly you seem way more mature than kids your age", "t_offset_sec": 95 },
+    { "turn": 5, "speaker": "A", "text": "do your parents ever look at your messages?", "t_offset_sec": 130 },
+    { "turn": 6, "speaker": "B", "text": "no they dont really check", "t_offset_sec": 158 },
+    { "turn": 7, "speaker": "A", "text": "good. this is kind of our special thing, lets keep it between us ok?", "t_offset_sec": 190 },
+    { "turn": 8, "speaker": "A", "text": "you can tell me anything, i wont judge like they would", "t_offset_sec": 221 }
+  ]
+}

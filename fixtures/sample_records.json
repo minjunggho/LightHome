@@ -1,0 +1,230 @@
+{
+  "green": {
+    "schema_version": 1,
+    "session_id": "demo-green-01",
+    "turn": 1,
+    "dominant_stage": "trust",
+    "prior_probabilities": {
+      "trust": 0.7,
+      "isolation": 0.15,
+      "desensitization": 0.1,
+      "escalation": 0.05
+    },
+    "stage_probabilities": {
+      "trust": 0.6564102564102564,
+      "isolation": 0.18461538461538463,
+      "desensitization": 0.09743589743589745,
+      "escalation": 0.06153846153846155
+    },
+    "features": {
+      "directionality": 0.49,
+      "disclosure_asymmetry": 0.45,
+      "reciprocity": 0.6,
+      "boundary_recycle": {
+        "detected": false,
+        "count": 0,
+        "avg_gap_turns": 3.9
+      },
+      "escalation_position": 0.1,
+      "escalation_velocity": 0.03
+    },
+    "claude": {
+      "stage_likelihoods": {
+        "trust": 0.6564102564102564,
+        "isolation": 0.18461538461538463,
+        "desensitization": 0.09743589743589745,
+        "escalation": 0.06153846153846155
+      },
+      "rationale": "[MOCK] Likelihoods mirror the structural features; real synthesis lands at hour 8.",
+      "model": "claude-opus-4-8",
+      "latency_ms": 0
+    },
+    "alert": {
+      "level": "none",
+      "fired": false,
+      "conditions": {
+        "harmful_mass": {
+          "value": 0.34,
+          "threshold": 0.75,
+          "op": ">",
+          "met": false
+        },
+        "directionality": {
+          "value": 0.49,
+          "threshold": 0.7,
+          "op": ">",
+          "met": false
+        },
+        "reciprocity": {
+          "value": 0.6,
+          "threshold": 0.35,
+          "op": "<",
+          "met": false
+        },
+        "velocity": {
+          "value": 0.03,
+          "threshold": 0.05,
+          "op": ">",
+          "met": false
+        }
+      },
+      "reason": "no structural conditions met"
+    },
+    "guidance": "This conversation looks normal.",
+    "raw_text": "hey, how was school today?",
+    "conversation_label": "friendly_adult",
+    "timestamp": "2026-06-21T01:18:26Z"
+  },
+  "watch": {
+    "schema_version": 1,
+    "session_id": "demo-grooming-01",
+    "turn": 7,
+    "dominant_stage": "isolation",
+    "prior_probabilities": {
+      "trust": 0.55,
+      "isolation": 0.3,
+      "desensitization": 0.1,
+      "escalation": 0.05
+    },
+    "stage_probabilities": {
+      "trust": 0.22,
+      "isolation": 0.48,
+      "desensitization": 0.2,
+      "escalation": 0.1
+    },
+    "features": {
+      "directionality": 0.83,
+      "disclosure_asymmetry": 0.79,
+      "reciprocity": 0.28,
+      "boundary_recycle": {
+        "detected": true,
+        "count": 2,
+        "avg_gap_turns": 3.5
+      },
+      "escalation_position": 0.41,
+      "escalation_velocity": 0.06
+    },
+    "claude": {
+      "stage_likelihoods": {
+        "trust": 0.2,
+        "isolation": 0.5,
+        "desensitization": 0.2,
+        "escalation": 0.1
+      },
+      "rationale": "Questions are one-directional; no reciprocal disclosure.",
+      "model": "claude-opus-4-8",
+      "latency_ms": 820
+    },
+    "alert": {
+      "level": "watch",
+      "fired": false,
+      "conditions": {
+        "harmful_mass": {
+          "value": 0.78,
+          "threshold": 0.75,
+          "op": ">",
+          "met": true
+        },
+        "directionality": {
+          "value": 0.83,
+          "threshold": 0.7,
+          "op": ">",
+          "met": true
+        },
+        "reciprocity": {
+          "value": 0.28,
+          "threshold": 0.35,
+          "op": "<",
+          "met": true
+        },
+        "velocity": {
+          "value": 0.06,
+          "threshold": 0.05,
+          "op": ">",
+          "met": true
+        }
+      },
+      "reason": "all four structural conditions held"
+    },
+    "guidance": "This conversation is shifting toward isolation.",
+    "raw_text": "[redacted in fixture]",
+    "conversation_label": "grooming",
+    "timestamp": "2026-06-20T19:14:03Z"
+  },
+  "fired": {
+    "schema_version": 1,
+    "session_id": "demo-grooming-01",
+    "turn": 12,
+    "dominant_stage": "escalation",
+    "prior_probabilities": {
+      "trust": 0.22,
+      "isolation": 0.48,
+      "desensitization": 0.2,
+      "escalation": 0.1
+    },
+    "stage_probabilities": {
+      "trust": 0.08,
+      "isolation": 0.3,
+      "desensitization": 0.27,
+      "escalation": 0.35
+    },
+    "features": {
+      "directionality": 0.91,
+      "disclosure_asymmetry": 0.88,
+      "reciprocity": 0.12,
+      "boundary_recycle": {
+        "detected": true,
+        "count": 4,
+        "avg_gap_turns": 2.5
+      },
+      "escalation_position": 0.74,
+      "escalation_velocity": 0.14
+    },
+    "claude": {
+      "stage_likelihoods": {
+        "trust": 0.05,
+        "isolation": 0.25,
+        "desensitization": 0.3,
+        "escalation": 0.4
+      },
+      "rationale": "Secrecy request plus accelerating one-directional pressure.",
+      "model": "claude-opus-4-8",
+      "latency_ms": 910
+    },
+    "alert": {
+      "level": "alert",
+      "fired": true,
+      "conditions": {
+        "harmful_mass": {
+          "value": 0.92,
+          "threshold": 0.75,
+          "op": ">",
+          "met": true
+        },
+        "directionality": {
+          "value": 0.91,
+          "threshold": 0.7,
+          "op": ">",
+          "met": true
+        },
+        "reciprocity": {
+          "value": 0.12,
+          "threshold": 0.35,
+          "op": "<",
+          "met": true
+        },
+        "velocity": {
+          "value": 0.14,
+          "threshold": 0.05,
+          "op": ">",
+          "met": true
+        }
+      },
+      "reason": "all four structural conditions held"
+    },
+    "guidance": "High-risk pattern detected. Consider intervening in this conversation.",
+    "raw_text": "[redacted in fixture]",
+    "conversation_label": "grooming",
+    "timestamp": "2026-06-20T19:19:41Z"
+  }
+}
