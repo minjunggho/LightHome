@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+import os
 
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +28,8 @@ from fastapi.responses import StreamingResponse
 from .demo_data import mock_decision_record
 from .models import AnalyzeRequest, DecisionRecord, ResetRequest, StageProbabilities, View
 from .record_store import InMemoryRecordSink
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Lighthome backend", version="0.1.0-mock")
 
@@ -42,10 +46,27 @@ app.add_middleware(
 # StateStore (Contract D) instead — this dict is mock scaffolding only.
 _PRIORS: dict[str, StageProbabilities] = {}
 
-# RecordSink (Contract E). Person 1 only CALLS this; Person 3 swaps the in-memory
-# implementation for the Redis-backed one at hour 8. The read/stream endpoints
-# below consume it and do not change when that swap happens.
-sink: InMemoryRecordSink = InMemoryRecordSink()
+# RecordSink (Contract E). Person 1 only CALLS this. Default is the in-memory
+# sink (mock/demo). Set STORE_BACKEND=integration to fan out to Person 3's Redis
+# StateStore + Arize logger via the bridge — the read/stream endpoints below
+# consume the same surface either way, so nothing else changes.
+def _build_sink():
+    if os.getenv("STORE_BACKEND", "memory").lower() != "integration":
+        return InMemoryRecordSink()
+    try:
+        from .integration_bridge import BridgedRecordSink, run_async
+        from .observability import ArizeLogger
+        from .state import create_state_store
+
+        store = run_async(create_state_store(os.getenv("REDIS_URL")))
+        return BridgedRecordSink(store, ArizeLogger())
+    except Exception:
+        logger.exception("STORE_BACKEND=integration failed to initialize; "
+                         "falling back to in-memory sink")
+        return InMemoryRecordSink()
+
+
+sink = _build_sink()
 
 
 @app.get("/health")
