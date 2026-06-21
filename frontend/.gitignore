@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# large raw media sources (transcoded versions are committed instead)
+/public/cut.mov

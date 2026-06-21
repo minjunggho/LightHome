@@ -1,233 +1,219 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+
+import dynamic from "next/dynamic";
+
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 import { AppShell } from "@/components/AppShell";
-import { LiveDot } from "@/components/LiveDot";
-import { SessionCard } from "@/components/SessionCard";
-import { Spotlight } from "@/components/Spotlight";
-import { StatCard, StatGroup } from "@/components/StatCard";
-import { ALERT_META } from "@/components/theme";
-import type { AlertLevel, SessionSummary } from "@/lib/api";
-import { startAllFeeds, type FeedController } from "@/lib/testFeed";
-import { useLiveSessions, useNow } from "@/lib/useLive";
+import { Composer } from "@/components/genui/Composer";
+import { ConversationPanel } from "@/components/genui/ConversationPanel";
 
-const RANK: Record<AlertLevel, number> = { alert: 2, watch: 1, none: 0 };
+// The OpenUI Renderer touches `document`, so keep the canvas client-only.
+const GenCanvas = dynamic(
+  () => import("@/components/genui/GenCanvas").then((m) => m.GenCanvas),
+  { ssr: false },
+);
+import { sessionDisplayName } from "@/lib/session";
+import { startAllFeeds } from "@/lib/testFeed";
+import { useGenDashboard } from "@/lib/openui/useGenDashboard";
+import { useLiveSessions } from "@/lib/useLive";
 
-export default function Home() {
-  const { sessions, connected, error, loading } = useLiveSessions();
-  const nowMs = useNow();
+const SUGGESTIONS = [
+  "Risk level across every conversation",
+  "Alert vs watch vs normal breakdown",
+  "Messages per conversation",
+  "A triage board sorted by status",
+];
 
-  const feedRef = useRef<FeedController | null>(null);
-  const [feeding, setFeeding] = useState(false);
+export default function GenerativeDashboard() {
+  const { sessions, connected } = useLiveSessions();
+  const { conversation, dashboardCode, isStreaming, streamingText, elapsed, send, clear } =
+    useGenDashboard();
+
+  const dataCount = sessions.length;
+  const active = conversation.length > 0 || dashboardCode !== null;
+
+  // The live snapshot handed to the model — the same /sessions the rest of the
+  // app reads, shaped for prompting. No raw message content (privacy holds here).
+  const liveData = useMemo(
+    () =>
+      sessions.map((s) => ({
+        conversation: sessionDisplayName(s.session_id),
+        messages: s.turns,
+        status: s.alert_level,
+      })),
+    [sessions],
+  );
+
+  const submit = useCallback((text: string) => send(text, liveData), [send, liveData]);
 
   const startFeed = useCallback(() => {
-    feedRef.current?.stop();
-    feedRef.current = startAllFeeds();
-    setFeeding(true);
+    startAllFeeds();
   }, []);
 
-  const stopFeed = useCallback(() => {
-    feedRef.current?.stop();
-    feedRef.current = null;
-    setFeeding(false);
-  }, []);
-
-  const alerts = sessions.filter((s) => s.alert_level === "alert").length;
-  const watches = sessions.filter((s) => s.alert_level === "watch").length;
-  const calm = sessions.filter((s) => s.alert_level === "none").length;
-  const overall: AlertLevel = alerts ? "alert" : watches ? "watch" : "none";
-
-  // Worst first, then most recent — drives both the spotlight and the grid.
-  const ranked = [...sessions].sort(
-    (a, b) =>
-      RANK[b.alert_level] - RANK[a.alert_level] ||
-      Date.parse(b.updated) - Date.parse(a.updated),
+  const aside = useMemo(
+    () => (
+      <ConversationPanel
+        messages={conversation}
+        streamingText={streamingText}
+        isStreaming={isStreaming}
+        onSubmit={submit}
+      />
+    ),
+    [conversation, streamingText, isStreaming, submit],
   );
-  const spotlight = ranked[0] ?? null;
 
   return (
     <AppShell
-      title="Home"
-      subtitle="Your live read on every monitored conversation"
+      title="Dashboard"
+      subtitle="Describe a view of your live detector data — generated with OpenUI"
       actions={
-        <div className="flex items-center gap-3">
-          <LiveDot level={overall} label={connected ? "Live" : "Offline"} />
-          {sessions.length > 0 && (
-            <FeedButton feeding={feeding} onStart={startFeed} onStop={stopFeed} />
-          )}
-        </div>
+        active ? (
+          <button
+            onClick={clear}
+            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold text-ink shadow-card transition-colors hover:bg-surface-2"
+          >
+            + New dashboard
+          </button>
+        ) : undefined
       }
+      aside={active ? aside : undefined}
     >
-      {!connected && !loading && (
-        <div
-          className="mb-5 rounded-2xl p-4 text-sm"
-          style={{ backgroundColor: ALERT_META.watch.bg, color: ALERT_META.watch.text }}
-        >
-          Can&apos;t reach the detector backend. Start it with{" "}
-          <code className="rounded bg-black/5 px-1 py-0.5 text-[12px]">
-            uvicorn app.main:app --port 8000
-          </code>{" "}
-          — the dashboard reconnects automatically.
-          {error && <span className="ml-1 opacity-70">({error})</span>}
-        </div>
-      )}
-
-      {sessions.length > 0 ? (
-        <div className="space-y-7">
-          {spotlight && <Spotlight summary={spotlight} nowMs={nowMs} />}
-
-          <StatGroup>
-            <StatCard
-              label="Monitored"
-              value={`${sessions.length}`}
-              hint="active conversations"
-              icon="monitored"
+      {active ? (
+        <div className="flex h-[calc(100vh-200px)] min-h-[460px] flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip>
+              <SparkDot /> Claude · via OpenUI
+            </Chip>
+            <Chip tone={connected ? "ok" : "warn"}>
+              {connected ? "✓" : "…"} Live data from Lighthome
+            </Chip>
+            <Chip>
+              {dataCount} conversation{dataCount === 1 ? "" : "s"} attached
+            </Chip>
+          </div>
+          <div className="min-h-0 flex-1">
+            <GenCanvas
+              library={openuiLibrary}
+              code={dashboardCode}
+              isStreaming={isStreaming}
+              elapsed={elapsed}
             />
-            <StatCard label="Calm" value={`${calm}`} accent={ALERT_META.none.fill} icon="check" />
-            <StatCard label="Watch" value={`${watches}`} accent={ALERT_META.watch.fill} icon="clock" />
-            <StatCard label="Alerts" value={`${alerts}`} accent={ALERT_META.alert.fill} icon="risk" />
-          </StatGroup>
-
-          <section>
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 className="text-[15px] font-semibold text-ink">All conversations</h2>
-              <Link
-                href="/parent"
-                className="group inline-flex items-center gap-1 text-[13px] font-medium text-ink-2 transition-colors hover:text-ink"
-              >
-                Watch console
-                <span className="transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {ranked.map((s) => (
-                <SessionCard key={s.session_id} summary={s} nowMs={nowMs} />
-              ))}
-            </div>
-          </section>
-
-          <Footer />
+          </div>
         </div>
       ) : (
-        <EmptyState
+        <IdleState
+          onSubmit={submit}
+          dataCount={dataCount}
           connected={connected}
-          loading={loading}
-          feeding={feeding}
-          onStart={startFeed}
+          onStartFeed={startFeed}
         />
       )}
     </AppShell>
   );
 }
 
-function FeedButton({
-  feeding,
-  onStart,
-  onStop,
-}: {
-  feeding: boolean;
-  onStart: () => void;
-  onStop: () => void;
-}) {
-  return (
-    <button
-      onClick={feeding ? onStop : onStart}
-      className="rounded-lg bg-brand px-3 py-1.5 text-[13px] font-semibold text-brand-fg transition-colors hover:bg-brand-strong"
-    >
-      {feeding ? "Stop test feed" : "Start test feed"}
-    </button>
-  );
-}
-
-/* Slim provenance + cross-links — replaces the old wall of explainer text.
-   The credibility line judges want to hear, kept to one breath. */
-function Footer() {
-  return (
-    <section className="rounded-3xl border border-line bg-surface-2 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
-        <p className="max-w-prose text-[13.5px] leading-relaxed text-ink-2">
-          Lighthome reads the <span className="font-semibold text-ink">shape</span> of a
-          conversation — the structural shift{" "}
-          <span className="font-semibold text-brand-ink">Trust → Isolation</span> — and alerts
-          before anything explicit is said. Four features run before Claude, so structure can
-          overrule the model. Always human-in-the-loop; it never blocks or reports on its own.
-        </p>
-        <div className="flex shrink-0 gap-2">
-          <ViewLink href="/parent" label="Watch console" />
-          <ViewLink href="/platform" label="Trust & Safety" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ViewLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="group inline-flex items-center gap-1.5 rounded-xl bg-surface px-3.5 py-2 text-[13px] font-semibold text-ink shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:shadow-pop"
-    >
-      {label}
-      <span className="text-brand-ink transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true">
-        →
-      </span>
-    </Link>
-  );
-}
-
-function EmptyState({
+function IdleState({
+  onSubmit,
+  dataCount,
   connected,
-  loading,
-  feeding,
-  onStart,
+  onStartFeed,
 }: {
+  onSubmit: (text: string) => void;
+  dataCount: number;
   connected: boolean;
-  loading: boolean;
-  feeding: boolean;
-  onStart: () => void;
+  onStartFeed: () => void;
 }) {
-  if (loading) {
-    return (
-      <div className="mt-8 grid place-items-center rounded-3xl border border-dashed border-line-strong bg-surface/50 px-6 py-20 text-center text-sm text-ink-3">
-        Connecting to the detector…
-      </div>
-    );
-  }
   return (
-    <div className="mt-6 overflow-hidden rounded-3xl border border-line bg-surface p-8 shadow-card sm:p-10">
-      <div className="max-w-xl">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand-ink">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        </div>
-        <h2 className="mt-5 text-[1.5rem] font-bold tracking-tight text-ink">
-          Nothing to watch yet
-        </h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
-          The dashboard reads whatever flows through the detector — a linked iMessage thread
-          via the ingestion adapter, or local test traffic. Start a test feed to run three
-          conversations through the real pipeline and watch the read update live.
-        </p>
-        {connected ? (
-          <button
-            onClick={onStart}
-            disabled={feeding}
-            className="mt-6 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-fg transition-colors hover:bg-brand-strong disabled:opacity-50"
-          >
-            {feeding ? "Feeding…" : "Start test feed"}
-          </button>
-        ) : (
-          <p className="mt-6 text-[13px] font-medium text-ink-3">
-            Start the detector backend to begin.
-          </p>
-        )}
+    <div className="mx-auto flex max-w-2xl flex-col items-center pt-[8vh] text-center">
+      <h2 className="text-balance text-[2rem] font-bold leading-[1.1] tracking-tight text-ink sm:text-[2.5rem]">
+        Build a dashboard from a sentence.
+      </h2>
+      <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink-2">
+        Describe what you want to see across your monitored conversations. Lighthome
+        attaches the live detector data and OpenUI generates the view with Claude.
+      </p>
+
+      <div className="mt-7 w-full text-left">
+        <ComposerEntry onSubmit={onSubmit} dataCount={dataCount} />
       </div>
+
+      {dataCount === 0 ? (
+        <p className="mt-4 text-[13px] text-ink-3">
+          No live data yet.{" "}
+          {connected ? (
+            <button onClick={onStartFeed} className="font-semibold text-brand-ink underline-offset-2 hover:underline">
+              Start a test feed
+            </button>
+          ) : (
+            <span>Start the detector backend to attach data.</span>
+          )}
+        </p>
+      ) : (
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          {SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              onClick={() => onSubmit(s)}
+              className="rounded-full border border-line bg-surface px-3.5 py-1.5 text-[13px] font-medium text-ink-2 shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:text-ink hover:shadow-pop"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
+}
+
+// Local wrapper so the idle Composer owns its own draft state.
+function ComposerEntry({
+  onSubmit,
+  dataCount,
+}: {
+  onSubmit: (text: string) => void;
+  dataCount: number;
+}) {
+  const [value, setValue] = useState("");
+  return (
+    <Composer
+      value={value}
+      onChange={setValue}
+      onSubmit={() => {
+        if (value.trim()) {
+          onSubmit(value.trim());
+          setValue("");
+        }
+      }}
+      dataCount={dataCount}
+      autoFocus
+      placeholder="Summarize, chart, compare…"
+    />
+  );
+}
+
+function Chip({
+  children,
+  tone = "neutral",
+}: {
+  children: React.ReactNode;
+  tone?: "neutral" | "ok" | "warn";
+}) {
+  const styles =
+    tone === "ok"
+      ? "bg-[oklch(0.97_0.03_168)] text-[oklch(0.44_0.1_168)]"
+      : tone === "warn"
+        ? "bg-[oklch(0.97_0.04_82)] text-[oklch(0.48_0.11_68)]"
+        : "bg-surface-2 text-ink-2";
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-semibold ${styles}`}>
+      {children}
+    </span>
+  );
+}
+
+function SparkDot() {
+  return <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />;
 }

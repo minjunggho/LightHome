@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@openuidev/react-ui/styles/index.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Lighthome — "Soft watch" theme.
@@ -164,23 +165,4 @@ body {
     transition-duration: 0.001ms !important;
   }
   .lh-draw { stroke-dashoffset: 0; }
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   Landing page ("/") — the cursor-driven lighthouse hero.
-
-   Scoped under .landing-root so the marketing typeface never leaks into the
-   dashboard, which stays on Geist. The HelveticaNow @font-face is loaded via
-   the <link> tags in the root layout <head>.
-   ────────────────────────────────────────────────────────────────────────── */
-.landing-root {
-  --font-heading: "HelveticaNowDisplay-Medium", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "HelveticaNowDisplayW01-Rg", "Helvetica Neue", Arial, sans-serif;
-  font-family: var(--font-body);
-}
-
-/* Blinking typewriter cursor in the hero. */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0; }
 }
