@@ -115,18 +115,30 @@ class DecisionRecord(BaseModel):
     raw_text: str
     conversation_label: ConversationLabel | None = None
     timestamp: str
+    # Conversation-relative time of this message (seconds since the session's
+    # first message). Timing METADATA, not content — powers the "minute 12 of 45"
+    # clock and the live risk-velocity read. Defaults to 0 for the mock/fixtures.
+    t_offset_sec: int = Field(default=0, ge=0)
 
     # --- Projections (Contract C) ------------------------------------------
 
     def to_parent_view(self) -> dict:
         """Whitelist projection. Privacy is enforced HERE, at the boundary —
-        no features, no claude, no raw_text, no conditions."""
+        no features, no claude, no raw_text, no conditions.
+
+        `turn`, `timestamp`, `t_offset_sec` are timing/ordering METADATA (not
+        message content). The parent console needs them to order the live stream,
+        run the risk-velocity / time-to-shift analytics, and dedupe SSE replays.
+        They expose nothing about what was said."""
         return {
+            "turn": self.turn,
             "dominant_stage": self.dominant_stage,
             "prior_probabilities": self.prior_probabilities.model_dump(),
             "stage_probabilities": self.stage_probabilities.model_dump(),
             "alert": {"level": self.alert.level},
             "guidance": self.guidance,
+            "timestamp": self.timestamp,
+            "t_offset_sec": self.t_offset_sec,
         }
 
     def to_tns_view(self) -> dict:

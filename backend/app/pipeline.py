@@ -59,4 +59,5 @@ def analyze(
         raw_text=new["text"],
         conversation_label=None,
         timestamp=_now_iso(),
+        t_offset_sec=new["t_offset_sec"],
     )

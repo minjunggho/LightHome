@@ -24,6 +24,7 @@ import logging
 import threading
 from typing import Any
 
+from .observability import capture_alert, capture_degradation
 from .protocols import SessionState
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,10 @@ class BridgedRecordSink:
                 )
             except Exception:
                 logger.exception("Arize log_classification failed for %s", sid)
+        # Sentry domain events (no-op unless SENTRY_DSN is set). Same observability
+        # fan-out point as Arize; structural data only, never raw_text.
+        capture_alert(record)
+        capture_degradation(record)
         try:
             run_async(self._store.append_turn(sid, record))
         except Exception:
@@ -133,9 +138,21 @@ class BridgedRecordSink:
         except Exception:
             logger.exception("StateStore delete_conversation failed for %s", session_id)
 
+    def _known_sessions(self) -> set[str]:
+        """Union of this-process emits and the store's durable session index,
+        so sessions survive a server restart (not just _seen in memory)."""
+        known = set(self._seen)
+        lister = getattr(self._store, "list_conversations", None)
+        if lister is not None:
+            try:
+                known.update(run_async(lister()))
+            except Exception:
+                logger.exception("StateStore list_conversations failed")
+        return known
+
     def sessions(self) -> list[dict]:
         out = []
-        for sid in self._seen:
+        for sid in self._known_sessions():
             last = self.latest(sid)
             if not last:
                 continue
