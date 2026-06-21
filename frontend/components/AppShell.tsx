@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const NAV = [
-  { href: "/", label: "Home", icon: GridIcon },
+  { href: "/dashboard", label: "Home", icon: GridIcon },
   { href: "/parent", label: "Watch console", icon: PulseIcon },
   { href: "/platform", label: "Trust & Safety", icon: ShieldIcon },
 ];
@@ -25,13 +25,13 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+    pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <div className="flex min-h-screen w-full bg-surface">
         {/* Sidebar */}
         <aside className="sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col border-r border-line px-5 py-7 lg:flex">
-          <Link href="/" className="flex items-center gap-2.5 px-1">
+          <Link href="/dashboard" className="flex items-center gap-2.5 px-1">
             <Beacon />
             <span className="flex flex-col leading-none">
               <span className="text-[1.3rem] font-bold tracking-tight text-ink">Lighthome</span>
