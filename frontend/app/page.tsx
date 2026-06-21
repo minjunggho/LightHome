@@ -1,65 +1,219 @@
-import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  EyeOff,
+  Gauge,
+  Layers3,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
+
+import { LighthouseHero } from "@/components/LighthouseHero";
+import { SignalAccordion } from "@/components/SignalAccordion";
+import { SiteHeader } from "@/components/SiteHeader";
+
+const stages = [
+  { name: "Trust-building", value: 22, tone: "trust" },
+  { name: "Isolation", value: 48, tone: "isolation" },
+  { name: "Desensitization", value: 20, tone: "desensitization" },
+  { name: "Escalation", value: 10, tone: "escalation" },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main>
+      <SiteHeader active="home" />
+      <LighthouseHero />
+
+      <section className="statement-band" aria-labelledby="structural-heading">
+        <div className="section-shell statement-inner">
+          <div className="eyebrow">
+            <span className="eyebrow-dot" />
+            Earlier intervention
+          </div>
+          <h2 id="structural-heading" className="statement-title">
+            The dangerous signal is not a word. It is the shape of the
+            conversation changing.
+          </h2>
+          <p className="statement-copy">
+            LightHome watches for one-sided disclosure, recycled boundaries,
+            increasing secrecy, and movement away from trusted support. It keeps
+            uncertainty visible and leaves final judgment to people.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="signal-section" id="method" aria-labelledby="signal-heading">
+        <div className="section-shell">
+          <div className="section-heading-row">
+            <div>
+              <div className="eyebrow">
+                <span className="eyebrow-dot" />
+                Decision trace
+              </div>
+              <h2 id="signal-heading">See the transition, not just the verdict.</h2>
+            </div>
+            <p>
+              Every alert stays decomposable: raw signals, stage probabilities,
+              Bayesian movement, and the conditions that did or did not align.
+            </p>
+          </div>
+
+          <div className="evidence-grid">
+            <article className="evidence-panel stage-panel">
+              <div className="panel-kicker">
+                <Layers3 size={17} aria-hidden="true" />
+                Stage probability
+              </div>
+              <div className="stage-bars">
+                {stages.map((stage) => (
+                  <div className="stage-row" key={stage.name}>
+                    <div className="stage-label">
+                      <span>{stage.name}</span>
+                      <strong>{stage.value}%</strong>
+                    </div>
+                    <div className="stage-track">
+                      <span
+                        className={`stage-fill ${stage.tone}`}
+                        style={{ width: `${stage.value}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="stage-note">
+                <span className="status-light watch" />
+                Isolation is rising, but the alert threshold is not yet met.
+              </div>
+            </article>
+
+            <article className="evidence-panel trace-panel">
+              <div className="trace-image" aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/frames/frame_0028.webp" alt="" />
+              </div>
+              <div className="trace-overlay">
+                <div className="panel-kicker light">
+                  <Gauge size={17} aria-hidden="true" />
+                  Structural movement
+                </div>
+                <h3>Friendly rapport is shifting toward private reliance.</h3>
+                <p>
+                  Directionality and disclosure asymmetry increased across the
+                  last four turns. Boundary pressure appeared, receded, then
+                  returned.
+                </p>
+              </div>
+              <div className="trace-metric">
+                <span>Risk movement</span>
+                <strong>+18%</strong>
+              </div>
+            </article>
+
+            <article className="evidence-panel conditions-panel">
+              <div className="panel-kicker">
+                <ShieldCheck size={17} aria-hidden="true" />
+                Alert conditions
+              </div>
+              <div className="condition-list">
+                <div><span>Harmful mass</span><strong className="met">Met</strong></div>
+                <div><span>Directionality</span><strong className="met">Met</strong></div>
+                <div><span>Low reciprocity</span><strong className="pending">Watching</strong></div>
+                <div><span>Velocity</span><strong className="pending">Watching</strong></div>
+              </div>
+              <p className="condition-copy">
+                LightHome alerts only when multiple independent conditions line
+                up, reducing the chance that casual secrecy or ordinary praise is
+                mistaken for grooming.
+              </p>
+            </article>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="views-section" aria-labelledby="views-heading">
+        <div className="section-shell">
+          <div className="section-heading-row compact">
+            <div>
+              <div className="eyebrow">
+                <span className="eyebrow-dot" />
+                Two accountable views
+              </div>
+              <h2 id="views-heading">The right context for the right person.</h2>
+            </div>
+          </div>
+
+          <div className="view-grid">
+            <Link href="/parent" className="view-panel parent-view">
+              <div className="view-icon"><EyeOff size={24} /></div>
+              <div>
+                <span className="view-label">Parent dashboard</span>
+                <h3>Guidance without exposing private messages.</h3>
+                <p>
+                  Stage movement, alert state, and calm next steps. Raw transcript
+                  content stays out of the parent view.
+                </p>
+              </div>
+              <span className="view-action">
+                Open parent view <ArrowRight size={17} />
+              </span>
+            </Link>
+
+            <Link href="/platform" className="view-panel platform-view">
+              <div className="view-icon"><Users size={24} /></div>
+              <div>
+                <span className="view-label">Trust &amp; safety</span>
+                <h3>Full context for trained human review.</h3>
+                <p>
+                  Transcript, feature decomposition, stage likelihoods, and alert
+                  conditions in one focused moderation workspace.
+                </p>
+              </div>
+              <span className="view-action">
+                Open moderator view <ArrowRight size={17} />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <SignalAccordion />
+
+      <section className="safety-band" aria-labelledby="safety-heading">
+        <div className="section-shell safety-inner">
+          <div>
+            <div className="eyebrow light">
+              <span className="eyebrow-dot" />
+              Safety by design
+            </div>
+            <h2 id="safety-heading">A signal for review, never an automatic sentence.</h2>
+          </div>
+          <div className="safety-copy">
+            <p>
+              LightHome does not automatically ban, block, or report anyone. The
+              prototype was built and demonstrated entirely with fictional
+              conversations.
+            </p>
+            <Link href="/platform" className="text-link light-link">
+              Inspect the decision trace <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="site-footer">
+        <div className="section-shell footer-inner">
+          <div>
+            <strong>LightHome</strong>
+            <p>Structural conversation safety, with uncertainty left visible.</p>
+          </div>
+          <div className="footer-links">
+            <Link href="/parent">Parent view</Link>
+            <Link href="/platform">Trust &amp; safety</Link>
+            <a href="#method">Method</a>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }
