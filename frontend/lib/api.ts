@@ -19,12 +19,26 @@ export interface AnalyzeRequest {
 }
 
 // --- parent view (whitelist projection) ---
+// `turn`, `timestamp`, `t_offset_sec` are timing/ordering METADATA the console
+// uses to order the live stream and run analytics — never message content.
 export interface ParentView {
+  turn: number;
   dominant_stage: Stage;
   prior_probabilities: StageProbabilities;
   stage_probabilities: StageProbabilities;
   alert: { level: AlertLevel };
   guidance: string;
+  timestamp: string;
+  t_offset_sec: number;
+}
+
+// --- /sessions summary (one row per live monitored conversation) ---
+export interface SessionSummary {
+  session_id: string;
+  turns: number;
+  last_turn: number;
+  alert_level: AlertLevel;
+  updated: string;
 }
 
 // --- tns view (full DecisionRecord) ---
@@ -73,6 +87,7 @@ export interface DecisionRecord {
   raw_text: string;
   conversation_label: string | null;
   timestamp: string;
+  t_offset_sec: number;
 }
 
 export type View = "parent" | "tns";
@@ -97,6 +112,26 @@ export function analyzeTns(req: AnalyzeRequest): Promise<DecisionRecord> {
 
 export function resetSession(sessionId: string): Promise<unknown> {
   return post("/session/reset", { session_id: sessionId });
+}
+
+// Live read path — the console is a read-only consumer of whatever is POSTing
+// messages (the iMessage adapter, or the local test feed).
+export async function listSessions(): Promise<SessionSummary[]> {
+  const res = await fetch(`${API_BASE}/sessions`);
+  if (!res.ok) throw new Error(`sessions ${res.status}`);
+  return res.json() as Promise<SessionSummary[]>;
+}
+
+export async function getSessionLatest(
+  sessionId: string,
+  view: View = "parent",
+): Promise<ParentView | DecisionRecord | null> {
+  const res = await fetch(
+    `${API_BASE}/session/${encodeURIComponent(sessionId)}/latest?view=${view}`,
+  );
+  if (!res.ok) throw new Error(`latest ${res.status}`);
+  const json = await res.json();
+  return json && Object.keys(json).length ? json : null;
 }
 
 export async function getTranscript(

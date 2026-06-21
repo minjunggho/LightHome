@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from .observability import capture_alert, capture_degradation
+
 
 class InMemoryRecordSink:
     """Contract E: emit(record) / transcript(session_id). Demo-only."""
@@ -22,6 +24,10 @@ class InMemoryRecordSink:
 
     def emit(self, record: dict) -> None:
         self._by_session[record["session_id"]].append(record)
+        # Observability fan-out (no-op unless SENTRY_DSN is set). Structural data
+        # only — never raw_text — so parent-privacy holds at the Sentry boundary.
+        capture_alert(record)
+        capture_degradation(record)
 
     def transcript(self, session_id: str) -> list[dict]:
         return list(self._by_session.get(session_id, []))

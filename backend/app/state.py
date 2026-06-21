@@ -14,7 +14,21 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-STATE_TTL_SECONDS = 3600
+
+def _load_state_ttl() -> int | None:
+    """Resolve the state TTL from STATE_TTL_SECONDS (0/empty -> no expiry)."""
+    raw = os.getenv("STATE_TTL_SECONDS")
+    if raw is None or raw.strip() == "":
+        return None  # persist indefinitely by default
+    try:
+        ttl = int(raw)
+    except ValueError:
+        logger.warning("Invalid STATE_TTL_SECONDS=%r; persisting indefinitely", raw)
+        return None
+    return ttl if ttl > 0 else None
+
+
+STATE_TTL_SECONDS = _load_state_ttl()
 
 
 class StateStore(ABC):
@@ -45,6 +59,10 @@ class StateStore(ABC):
     @abstractmethod
     async def delete_conversation(self, conversation_id: str) -> None:
         """Delete all stored data for a conversation."""
+
+    @abstractmethod
+    async def list_conversations(self) -> list[str]:
+        """Return the ids of every conversation with stored data."""
 
 
 class DictStateStore(StateStore):
@@ -85,6 +103,10 @@ class DictStateStore(StateStore):
         self._states.pop(conversation_id, None)
         self._turns.pop(conversation_id, None)
 
+    async def list_conversations(self) -> list[str]:
+        """Return ids of conversations that have state or turns stored."""
+        return list(self._states.keys() | self._turns.keys())
+
 
 class RedisStateStore(StateStore):
     """Redis-backed state store that persists JSON strings with a short TTL."""
@@ -93,11 +115,20 @@ class RedisStateStore(StateStore):
         """Initialize the store with an async Redis client."""
         self._client = client
 
+    _index_key = "lighthome:conversations"
+
     def _state_key(self, conversation_id: str) -> str:
         return f"lighthome:state:{conversation_id}"
 
     def _turns_key(self, conversation_id: str) -> str:
         return f"lighthome:turns:{conversation_id}"
+
+    async def _index(self, conversation_id: str) -> None:
+        """Record a conversation id in the durable session index."""
+        try:
+            await self._client.sadd(self._index_key, conversation_id)
+        except Exception:
+            logger.exception("Failed to index conversation %s", conversation_id)
 
     async def save_conversation_state(
         self, conversation_id: str, state: dict[str, Any]
@@ -109,6 +140,7 @@ class RedisStateStore(StateStore):
             await self._client.set(key, payload, ex=STATE_TTL_SECONDS)
         except Exception:
             logger.exception("Failed to save Redis state for %s", conversation_id)
+        await self._index(conversation_id)
 
     async def get_conversation_state(
         self, conversation_id: str
@@ -144,9 +176,11 @@ class RedisStateStore(StateStore):
         key = self._turns_key(conversation_id)
         try:
             await self._client.rpush(key, payload)
-            await self._client.expire(key, STATE_TTL_SECONDS)
+            if STATE_TTL_SECONDS is not None:
+                await self._client.expire(key, STATE_TTL_SECONDS)
         except Exception:
             logger.exception("Failed to append Redis turn for %s", conversation_id)
+        await self._index(conversation_id)
 
     async def get_all_turns(self, conversation_id: str) -> list[dict[str, Any]]:
         """Load and parse all stored turns from the Redis list."""
@@ -180,8 +214,22 @@ class RedisStateStore(StateStore):
                 self._state_key(conversation_id),
                 self._turns_key(conversation_id),
             )
+            await self._client.srem(self._index_key, conversation_id)
         except Exception:
             logger.exception("Failed to delete Redis data for %s", conversation_id)
+
+    async def list_conversations(self) -> list[str]:
+        """Return all conversation ids from the durable session index."""
+        try:
+            members = await self._client.smembers(self._index_key)
+        except Exception:
+            logger.exception("Failed to list Redis conversations")
+            return []
+
+        ids: list[str] = []
+        for member in members:
+            ids.append(member.decode() if isinstance(member, bytes) else str(member))
+        return ids
 
 
 async def create_state_store(redis_url: str | None = None) -> StateStore:

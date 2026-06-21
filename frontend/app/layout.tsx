@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lighthome",
+  title: "Lighthome — grooming detection",
   description: "Detecting the shape of online grooming — before anything explicit is said.",
 };
 
@@ -27,9 +27,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-100 text-neutral-900">
-        {children}
-      </body>
+      <body className="min-h-full bg-surface text-ink">{children}</body>
     </html>
   );
 }

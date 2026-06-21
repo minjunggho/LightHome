@@ -37,12 +37,17 @@ from . import pipeline
 from .demo_data import mock_decision_record
 from .features import Message
 from .models import AnalyzeRequest, DecisionRecord, ResetRequest, StageProbabilities, View
+from .observability import init_sentry
 from .record_store import InMemoryRecordSink
 
 logger = logging.getLogger(__name__)
 
 # "mock" (turn-count ramp, content-blind) | "live" (real extractors + synthesis)
 PIPELINE_MODE = os.getenv("PIPELINE_MODE", "mock").lower()
+
+# Sentry must init BEFORE the FastAPI app so its integration patches request
+# handling. No-op without SENTRY_DSN; wires error monitoring + alert events.
+init_sentry()
 
 app = FastAPI(title="Lighthome backend", version="0.2.0")
 

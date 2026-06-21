@@ -1,26 +1,167 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Lighthome — "Soft watch" theme.
+
+   A light, airy monitoring console: the whole app is one rounded white panel
+   floating on a soft gray page, with hairline-divided columns and gentle
+   shadows. Friendly blue is the primary accent; amber is secondary; the risk
+   semantics (calm-green → red) ride on top for data only.
+
+   Light surface only — a single intentional theme. Do NOT add a
+   prefers-color-scheme: dark override.
+
+   All colors are OKLCH, tuned to clear WCAG AA on their intended background.
+   ────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Page + surfaces */
+  --page: oklch(0.905 0.004 256);            /* soft gray behind the app panel */
+  --surface: oklch(1 0 0);                    /* the white app surface          */
+  --surface-2: oklch(0.969 0.003 256);        /* embedded cards, inputs, pills  */
+  --surface-3: oklch(0.945 0.004 256);        /* hover / file cards             */
+  --surface-sunken: var(--surface-2);         /* legacy alias                   */
+  --canvas: oklch(0.985 0.002 256);           /* legacy alias (near-white)      */
+
+  /* Ink ramp — each clears AA on white */
+  --ink: oklch(0.22 0.012 264);               /* headings        ~15:1         */
+  --ink-2: oklch(0.44 0.012 264);             /* body/secondary  ~7:1          */
+  --ink-3: oklch(0.52 0.012 264);             /* muted / labels  ~5.4:1        */
+
+  /* Hairlines */
+  --line: oklch(0.923 0.003 256);
+  --line-strong: oklch(0.87 0.004 256);
+
+  /* Brand — friendly blue */
+  --brand: oklch(0.585 0.15 256);             /* primary fill (white text AA)  */
+  --brand-strong: oklch(0.5 0.16 257);        /* hover / AA-critical           */
+  --brand-ink: oklch(0.5 0.16 257);           /* blue text on white            */
+  --brand-soft: oklch(0.935 0.04 256);        /* tints, bubbles, active        */
+  --brand-tint: var(--brand-soft);            /* legacy alias                  */
+  --brand-fg: oklch(0.99 0 0);
+
+  /* Amber secondary */
+  --accent: oklch(0.77 0.12 66);
+
+  /* Dark ink panel — chart tooltips, etc. (repurposed "rail" tokens) */
+  --rail: oklch(0.235 0.018 264);
+  --rail-fg: oklch(0.965 0.005 256);
+  --rail-muted: oklch(0.72 0.012 256);
+  --rail-active: oklch(0.32 0.02 264);
+  --rail-line: oklch(1 0 0 / 0.1);
+
+  /* Focus */
+  --focus: oklch(0.62 0.15 256);
+
+  /* Soft shadows */
+  --shadow-app: 0 32px 64px -28px oklch(0.3 0.03 264 / 0.28),
+    0 12px 28px -16px oklch(0.3 0.03 264 / 0.14);
+  --shadow-card: 0 1px 2px oklch(0.3 0.03 264 / 0.05),
+    0 2px 6px -2px oklch(0.3 0.03 264 / 0.06);
+  --shadow-pop: 0 10px 28px -8px oklch(0.3 0.03 264 / 0.22);
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Semantic z-scale */
+  --z-sticky: 100;
+  --z-dropdown: 200;
+  --z-tooltip: 300;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-canvas: var(--canvas);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-fg: var(--brand-fg);
+  --color-accent: var(--accent);
+
+  --color-rail: var(--rail);
+  --color-rail-fg: var(--rail-fg);
+  --color-rail-muted: var(--rail-muted);
+  --color-rail-active: var(--rail-active);
+
+  --shadow-app: var(--shadow-app);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+
+  --radius-4xl: 1.75rem;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--line);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--page);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+
+@keyframes lh-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lh-draw {
+  from { stroke-dashoffset: var(--dash, 1000); }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes lh-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--pulse, oklch(0.58 0.21 26 / 0.5)); }
+  60%      { box-shadow: 0 0 0 7px oklch(0.58 0.21 26 / 0); }
+}
+
+@keyframes lh-blip {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.82); }
+}
+
+.lh-rise { animation: lh-rise 0.5s var(--ease-out-quint) both; }
+.lh-draw { stroke-dasharray: var(--dash, 1000); animation: lh-draw 0.9s var(--ease-out-quint) both; }
+.lh-pulse { animation: lh-pulse 2s ease-out infinite; }
+.lh-blip { animation: lh-blip 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .lh-draw { stroke-dashoffset: 0; }
 }
