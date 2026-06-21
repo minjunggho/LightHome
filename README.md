@@ -66,6 +66,8 @@ The alert fires only when **all four** structural conditions hold simultaneously
 | **Arize (Phoenix)** | **Decision observability / audit trail.** Every Claude synthesis call is captured as an OpenInference span (prompt, structural features in, stage likelihoods out, latency) via OTel auto-instrumentation. We log the **feature-vs-Claude disagreement** as first-class span attributes, making "the structure overruled the model" *queryable* in the Phoenix UI — our single best technical-credibility moment. |
 | **Redis** | **Conversation state & arc tracking.** Holds per-session state across the message stream so the Bayesian tracker maintains a running prior. Coded behind a `StateStore` protocol — swaps to an in-memory `DictStateStore` with one line if Redis is down. |
 | **Sentry** | **Error + alert-event monitoring.** Not a bare `init()` — it tracks real alert-fire events and pipeline failures so we can show live monitoring of the detection system itself. |
+| **Deepgram** | **Dashboard Analysis Summarization and Text to Speech** Not a bare `init()` —  it allows the users to ask questions directly and get answers back from the generated dashboard, so it processes the analytics generated and is not just a summarizer. |
+
 
 ---
 
