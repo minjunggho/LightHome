@@ -1,4 +1,4 @@
-# First 45 — CONTRACTS
+# Lighthome — CONTRACTS
 
 The interfaces between the three roles. Freeze these in **hour 0**. Once frozen,
 each person mocks the others' outputs and works fully in parallel. Read

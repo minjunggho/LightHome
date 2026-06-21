@@ -1,4 +1,4 @@
-# LightHome — Project Context & Working Agreement
+# Lighthome — Project Context & Working Agreement
 
 > Drop this at the repo root. Claude Code and Cursor auto-detect `CLAUDE.md`,
 > so it doubles as shared context for the team **and** for our AI coding tools.
@@ -21,10 +21,8 @@ friendly to isolating. That transition contains no flagged words. We catch it
 there.
 
 **Name:** Research shows a predator can move from first contact to high-risk
-grooming in ~45 minutes — long before any explicit word is said. "LightHome" =
-the light you leave on so a child is never alone in the dark: a quiet watch over
-the conversation that catches the danger early and brings the warning home to a
-parent. Our demo line: *we catch it at minute 12.*
+grooming in ~45 minutes. **Lighthome** catches it in those first minutes. Our
+demo line: *we catch it at minute 12.*
 
 ---
 
