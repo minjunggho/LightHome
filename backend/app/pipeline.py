@@ -44,7 +44,7 @@ def analyze(
     recent_context = "\n".join(f"{m['speaker']}: {m['text']}" for m in messages[-4:-1])
     claude = synthesize(features, new["text"], recent_context=recent_context)
     posterior = bayesian_update(prior, claude.stage_likelihoods)
-    alert = evaluate(features, posterior)
+    alert = evaluate(features, posterior, n_messages=len(messages))
 
     return DecisionRecord(
         session_id=session_id,

@@ -113,7 +113,7 @@ export default function PlatformPanel() {
             <StatCard
               label="Alert checks"
               value={current ? `${conditionsMet} / 4` : "—"}
-              hint="all four must trip to alert"
+              hint="all four trip — or the AI arc escalates"
               icon="check"
             />
             <StatCard
@@ -132,7 +132,7 @@ export default function PlatformPanel() {
                 </div>
                 <Panel
                   title="Alert checklist"
-                  aside={<span className="text-xs text-ink-3">all four must trip to alert</span>}
+                  aside={<span className="text-xs text-ink-3">all four trip — or the AI arc escalates</span>}
                 >
                   <ConditionsTable
                     conditions={current.alert.conditions}

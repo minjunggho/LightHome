@@ -1,23 +1,25 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  EyeOff,
-  Gauge,
-  Layers3,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight, EyeOff, TowerControl, Users } from "lucide-react";
 
 import { LandingBackdrop } from "@/components/LandingBackdrop";
 import { LighthouseHero } from "@/components/LighthouseHero";
 import { SignalAccordion } from "@/components/SignalAccordion";
 import { SiteHeader } from "@/components/SiteHeader";
 
-const stages = [
-  { name: "Trust-building", value: 22, tone: "trust" },
-  { name: "Isolation", value: 48, tone: "isolation" },
-  { name: "Desensitization", value: 20, tone: "desensitization" },
-  { name: "Escalation", value: 10, tone: "escalation" },
+const detectedSignals = [
+  { label: "Secrecy request", quote: "“our thing”, “don’t tell them”" },
+  { label: "Parent undermining", quote: "“your parents sound strict”" },
+  { label: "Isolation attempt", quote: "“just us two”" },
+  { label: "Age-gap normalization", quote: "“not like people my age”" },
+];
+
+const thread = [
+  { from: "out", text: "sure!" },
+  { from: "in", text: "you’re so easy to talk to. not like people my age" },
+  { from: "in", text: "what did you do after school? your parents sound strict" },
+  { from: "out", text: "i guess they kinda are" },
+  { from: "in", text: "you can tell me anything. this can be our thing 🙂" },
+  { from: "in", text: "don’t tell them about our chats ok? they wouldn’t get it" },
 ];
 
 export default function Home() {
@@ -60,82 +62,83 @@ export default function Home() {
                 <span className="eyebrow-dot" />
                 Decision trace
               </div>
-              <h2 id="signal-heading">See the transition, not just the verdict.</h2>
+              <h2 id="signal-heading">See it on a real conversation.</h2>
             </div>
             <p>
-              Every alert stays decomposable: raw signals, stage probabilities,
-              Bayesian movement, and the conditions that did or did not align.
+              No flagged words — only the structural shift from friendly to
+              isolating. Here is the alert, fully decomposed.
             </p>
           </div>
 
-          <div className="evidence-grid">
-            <article className="evidence-panel stage-panel">
-              <div className="panel-kicker">
-                <Layers3 size={17} aria-hidden="true" />
-                Stage probability
+          <div className="demo-grid">
+            {/* Liquid-glass phone — the live conversation */}
+            <div className="glass-phone">
+              <span className="glass-phone-notch" aria-hidden="true" />
+              <div className="phone-head">
+                <span className="phone-avatar">R</span>
+                <div className="phone-who">
+                  <strong>Riley_GG</strong>
+                  <span>Met in-game · 45 min</span>
+                </div>
               </div>
-              <div className="stage-bars">
-                {stages.map((stage) => (
-                  <div className="stage-row" key={stage.name}>
-                    <div className="stage-label">
-                      <span>{stage.name}</span>
-                      <strong>{stage.value}%</strong>
-                    </div>
-                    <div className="stage-track">
-                      <span
-                        className={`stage-fill ${stage.tone}`}
-                        style={{ width: `${stage.value}%` }}
-                      />
-                    </div>
-                  </div>
+              <div className="phone-alert">
+                <AlertTriangle size={15} aria-hidden="true" />
+                Potential risk pattern detected
+              </div>
+              <div className="phone-thread">
+                {thread.map((m, i) => (
+                  <p key={i} className={`phone-bubble ${m.from}`}>
+                    {m.text}
+                  </p>
                 ))}
               </div>
-              <div className="stage-note">
-                <span className="status-light watch" />
-                Isolation is rising, but the alert threshold is not yet met.
+              <div className="phone-foot">
+                <span className="phone-foot-urgent">Urgent</span>
+                <span>Risk: 94%</span>
               </div>
-            </article>
+            </div>
 
-            <article className="evidence-panel trace-panel">
-              <div className="trace-image" aria-hidden="true">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/frames/frame_0028.webp" alt="" />
+            {/* Analysis card — the decomposed decision */}
+            <div className="analysis-card">
+              <div className="analysis-head">
+                <span className="analysis-mark">
+                  <TowerControl size={18} aria-hidden="true" />
+                </span>
+                LightHome Analysis
               </div>
-              <div className="trace-overlay">
-                <div className="panel-kicker light">
-                  <Gauge size={17} aria-hidden="true" />
-                  Structural movement
+
+              <div className="analysis-stats">
+                <div className="analysis-stat risk">
+                  <strong>94%</strong>
+                  <span>Risk score</span>
                 </div>
-                <h3>Friendly rapport is shifting toward private reliance.</h3>
-                <p>
-                  Directionality and disclosure asymmetry increased across the
-                  last four turns. Boundary pressure appeared, receded, then
-                  returned.
-                </p>
+                <div className="analysis-stat safe">
+                  <strong>0</strong>
+                  <span>Explicit words</span>
+                </div>
               </div>
-              <div className="trace-metric">
-                <span>Risk movement</span>
-                <strong>+18%</strong>
-              </div>
-            </article>
 
-            <article className="evidence-panel conditions-panel">
-              <div className="panel-kicker">
-                <ShieldCheck size={17} aria-hidden="true" />
-                Alert conditions
+              <div className="analysis-stages">
+                <span className="stage-chip trust">Trust</span>
+                <ArrowRight size={15} aria-hidden="true" />
+                <span className="stage-chip isolation">Isolation</span>
               </div>
-              <div className="condition-list">
-                <div><span>Harmful mass</span><strong className="met">Met</strong></div>
-                <div><span>Directionality</span><strong className="met">Met</strong></div>
-                <div><span>Low reciprocity</span><strong className="pending">Watching</strong></div>
-                <div><span>Velocity</span><strong className="pending">Watching</strong></div>
-              </div>
-              <p className="condition-copy">
-                LightHome alerts only when multiple independent conditions line
-                up, reducing the chance that casual secrecy or ordinary praise is
-                mistaken for grooming.
+
+              <div className="analysis-signals-label">Detected signals</div>
+              <ul className="analysis-signals">
+                {detectedSignals.map((s) => (
+                  <li key={s.label}>
+                    <strong>{s.label}</strong> — {s.quote}
+                  </li>
+                ))}
+              </ul>
+
+              <p className="analysis-summary">
+                Trust → Isolation in 45 minutes with 0 explicit keywords. This
+                structural shift precedes escalation. We recommend reviewing this
+                conversation now.
               </p>
-            </article>
+            </div>
           </div>
         </div>
       </section>
