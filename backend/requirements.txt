@@ -12,8 +12,12 @@ numpy>=1.26
 
 # --- Observability / state (Person 3 implements behind protocols) ---
 redis>=5.0
-arize>=7.0
 sentry-sdk>=2.0
+# Arize Phoenix tracing (OTel + OpenInference) — captures the Claude synthesis span
+arize-phoenix-otel>=0.6
+openinference-instrumentation-anthropic>=0.1
+opentelemetry-sdk>=1.27
+opentelemetry-exporter-otlp>=1.27
 
 # --- Dev ---
 python-dotenv>=1.0

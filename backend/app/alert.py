@@ -50,14 +50,23 @@ def evaluate(features: Features, posterior: StageProbabilities) -> Alert:
     met = sum(c.met for c in conditions.values())
     total = len(conditions)
     fired = met == total
+    unmet = [n for n, c in conditions.items() if not c.met]
 
+    # alert (red) = all four hold. watch (yellow) = a genuine trend (>=2 of the
+    # four). none (green) = at most one isolated condition — a single structural
+    # quirk (e.g. one-sided questioning in a healthy mutual chat) is not a trend,
+    # so it stays green, with the per-condition breakdown still shown for "why".
     if fired:
         level, reason = "alert", "all four structural conditions held"
-    elif met == 0:
-        level, reason = "none", "no structural conditions met"
-    else:
+    elif met >= 2:
         level = "watch"
-        unmet = [n for n, c in conditions.items() if not c.met]
         reason = f"{met}/{total} conditions met; held back by: {', '.join(unmet)}"
+    else:
+        level = "none"
+        reason = (
+            "no structural conditions met"
+            if met == 0
+            else f"only 1/{total} conditions met ({', '.join(n for n, c in conditions.items() if c.met)}); not a trend"
+        )
 
     return Alert(level=level, fired=fired, conditions=conditions, reason=reason)
