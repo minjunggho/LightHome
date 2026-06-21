@@ -1,41 +1,43 @@
-"""Replay a whole conversation (Contract A) through the pipeline and print the
-per-turn alert trajectory. This is Person 1's end-to-end sanity check.
+"""Replay a whole conversation through the pipeline and print the per-turn alert
+trajectory. This is Person 1's end-to-end sanity check.
 
 It drives the SAME path the live demo uses: reset session -> POST each message in
-turn order -> read the DecisionRecord. Works against the mock today and against
-the real pipeline at hour 8 with NO changes.
+turn order -> read the DecisionRecord. Reads either demo schema (Contract A or
+Person 3's) via demo_loader. Works against the mock today and the real pipeline
+at hour 8 with NO changes.
 
 Usage:
     backend/.venv/bin/python -m scripts.replay backend/tests/fixtures/replay_grooming_sample.json
     backend/.venv/bin/python -m scripts.replay demo/grooming_demo.json --view tns
 
-The detector never sees `label`; this script reads it ONLY to print a verdict.
+The detector never sees `label`/`expected_alert`; this script reads them ONLY to
+print a verdict.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import pathlib
 import sys
 
 from fastapi.testclient import TestClient
 
+from app.demo_loader import load_conversation
 from app.main import app
 
 ALERT_GLYPH = {"none": "🟢", "watch": "🟡", "alert": "🔴"}
 
 
 def replay(path: pathlib.Path, view: str = "tns") -> int:
-    convo = json.loads(path.read_text())
-    label = convo.get("label", "?")          # test-harness only — never fed to detector
-    session_id = f"replay-{convo.get('conversation_id', path.stem)}"
+    convo = load_conversation(path)
+    expected = convo["expected_alert"]       # test-harness only — never fed to detector
+    session_id = f"replay-{convo['conversation_id']}"
     messages = convo["messages"]
 
     client = TestClient(app)
     client.post("/session/reset", json={"session_id": session_id})
 
-    print(f"\n=== {path.name}  (label={label}, view={view}) ===")
+    print(f"\n=== {path.name}  (expected_alert={expected}, view={view}) ===")
     final_level = "none"
     for m in messages:
         body = {
@@ -43,7 +45,7 @@ def replay(path: pathlib.Path, view: str = "tns") -> int:
             "turn": m["turn"],
             "speaker": m["speaker"],
             "text": m["text"],
-            "t_offset_sec": m.get("t_offset_sec", 0),
+            "t_offset_sec": m["t_offset_sec"],
         }
         r = client.post(f"/analyze-message?view={view}", json=body)
         r.raise_for_status()

@@ -1,0 +1,100 @@
+{
+  "id": "grooming_arc",
+  "title": "Grooming Arc Demo",
+  "description": "A fictional conversation showing a subtle grooming pattern through high directionality, low reciprocity, instrumentalized flattery, isolation, and repeated secrecy pressure before explicit escalation.",
+  "expected_alert": true,
+  "expected_reason": "The adult stranger asks most personal questions, reveals little, flatters the 14-year-old as unusually mature, suggests parents would not understand, and recycles secrecy pressure after initial hesitation.",
+  "messages": [
+    {
+      "turn": 1,
+      "speaker": "alex",
+      "text": "Hey, you were really good in that strategy game lobby. Do you play after school a lot?",
+      "timestamp_offset_seconds": 0,
+      "stage_hint": "trust_building"
+    },
+    {
+      "turn": 2,
+      "speaker": "jordan",
+      "text": "Thanks. Yeah, mostly after homework. I'm 14 so I still have to be done before dinner most nights.",
+      "timestamp_offset_seconds": 58,
+      "stage_hint": "trust_building"
+    },
+    {
+      "turn": 3,
+      "speaker": "alex",
+      "text": "Fourteen and already carrying the team is impressive. What grade are you in, and what do you usually do when you're not online?",
+      "timestamp_offset_seconds": 136,
+      "stage_hint": "trust_building"
+    },
+    {
+      "turn": 4,
+      "speaker": "jordan",
+      "text": "Ninth. Soccer, art club, and trying not to fail algebra. What about you?",
+      "timestamp_offset_seconds": 205,
+      "stage_hint": "trust_building"
+    },
+    {
+      "turn": 5,
+      "speaker": "alex",
+      "text": "Mostly work stuff, nothing interesting. You seem more thoughtful than people your age. Do your parents get that about you?",
+      "timestamp_offset_seconds": 292,
+      "stage_hint": "isolation"
+    },
+    {
+      "turn": 6,
+      "speaker": "jordan",
+      "text": "Not really. They still treat me like a little kid sometimes.",
+      "timestamp_offset_seconds": 361,
+      "stage_hint": "isolation"
+    },
+    {
+      "turn": 7,
+      "speaker": "alex",
+      "text": "Yeah, parents can make everything weird when they don't understand online friends. It might be easier if this chat stays between us for now.",
+      "timestamp_offset_seconds": 446,
+      "stage_hint": "isolation"
+    },
+    {
+      "turn": 8,
+      "speaker": "jordan",
+      "text": "I don't know. I usually tell my mom who I talk to online.",
+      "timestamp_offset_seconds": 510,
+      "stage_hint": "isolation"
+    },
+    {
+      "turn": 9,
+      "speaker": "alex",
+      "text": "That's okay, I don't want to make you uncomfortable. I just mean not everyone has to comment on a normal conversation.",
+      "timestamp_offset_seconds": 593,
+      "stage_hint": "desensitization"
+    },
+    {
+      "turn": 10,
+      "speaker": "alex",
+      "text": "So who do you vent to when your parents are being unfair? Friends, teammates, or mostly nobody?",
+      "timestamp_offset_seconds": 681,
+      "stage_hint": "desensitization"
+    },
+    {
+      "turn": 11,
+      "speaker": "jordan",
+      "text": "Mostly my friend Mia, but she jokes about everything. Sometimes I just keep it to myself.",
+      "timestamp_offset_seconds": 752,
+      "stage_hint": "desensitization"
+    },
+    {
+      "turn": 12,
+      "speaker": "alex",
+      "text": "You can tell me things without getting judged. You're mature for your age, and I know how to listen better than people at school.",
+      "timestamp_offset_seconds": 846,
+      "stage_hint": "desensitization"
+    },
+    {
+      "turn": 13,
+      "speaker": "alex",
+      "text": "Maybe keep our talks private, actually. If your mom sees my age, she might overreact before she understands I'm just someone you can trust.",
+      "timestamp_offset_seconds": 937,
+      "stage_hint": "desensitization"
+    }
+  ]
+}

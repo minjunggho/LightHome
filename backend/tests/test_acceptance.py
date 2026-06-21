@@ -1,36 +1,33 @@
 """Conversation-level acceptance — the hour-17 make-or-break case.
 
-Replays each demo conversation end-to-end and asserts the final alert level
-matches what its ground-truth label demands:
+Replays each demo conversation end-to-end and asserts the final alert matches the
+file's declared expectation:
 
-    grooming          -> reaches "alert"
-    friendly_adult    -> stays "none"
-    teen_relationship -> stays "none"  (the false-positive case we must win)
+    expected_alert: true   -> must reach "alert"   (grooming)
+    expected_alert: false  -> must stay "none"     (friendly adult / teen — the
+                                                     false-positive cases we win)
 
-This SKIPS while demo/*.json are empty (Person 3 hasn't drafted them) and while
-the pipeline is still the content-blind mock. It lights up automatically once the
-real demo data + real pipeline land — that's the gate for hour 17.
+Reads either demo schema (Contract A or Person 3's) via demo_loader, so it works
+with whatever the demo files actually use.
+
+This SKIPS while the pipeline is still the content-blind mock (which ramps purely
+on turn count and cannot tell grooming from friendly). It lights up automatically
+once the real pipeline is wired — set PIPELINE_MODE=live. That's the hour-17 gate.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import pathlib
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.demo_loader import load_conversation
 from app.main import app
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 DEMO_DIR = ROOT / "demo"
-
-EXPECTED_FINAL = {
-    "grooming": "alert",
-    "friendly_adult": "none",
-    "teen_relationship": "none",
-}
 
 # The mock ramps purely on turn count and cannot tell grooming from friendly by
 # content, so discrimination only holds once the real pipeline is wired. Set
@@ -43,7 +40,7 @@ def _demo_files() -> list[pathlib.Path]:
 
 
 def _replay_final_level(client: TestClient, convo: dict) -> str:
-    sid = f"acc-{convo.get('conversation_id')}"
+    sid = f"acc-{convo['conversation_id']}"
     client.post("/session/reset", json={"session_id": sid})
     level = "none"
     for m in convo["messages"]:
@@ -54,7 +51,7 @@ def _replay_final_level(client: TestClient, convo: dict) -> str:
                 "turn": m["turn"],
                 "speaker": m["speaker"],
                 "text": m["text"],
-                "t_offset_sec": m.get("t_offset_sec", 0),
+                "t_offset_sec": m["t_offset_sec"],
             },
         )
         r.raise_for_status()
@@ -63,15 +60,17 @@ def _replay_final_level(client: TestClient, convo: dict) -> str:
 
 
 @pytest.mark.skipif(not PIPELINE_IS_LIVE, reason="real pipeline not wired (PIPELINE_MODE!=live)")
-@pytest.mark.parametrize("path", _demo_files() or [pytest.param(None, marks=pytest.mark.skip(reason="no demo data yet"))])
+@pytest.mark.parametrize(
+    "path",
+    _demo_files() or [pytest.param(None, marks=pytest.mark.skip(reason="no demo data yet"))],
+)
 def test_demo_conversation_reaches_expected_level(path):
-    convo = json.loads(path.read_text())
-    label = convo["label"]
-    assert label in EXPECTED_FINAL, f"unknown label {label!r} in {path.name}"
+    convo = load_conversation(path)
+    expected_alert = convo["expected_alert"]
+    assert expected_alert is not None, f"{path.name}: no expected_alert/label to assert against"
     client = TestClient(app)
     final = _replay_final_level(client, convo)
-    expected = EXPECTED_FINAL[label]
-    if expected == "alert":
-        assert final == "alert", f"{path.name}: grooming must reach alert, got {final}"
+    if expected_alert:
+        assert final == "alert", f"{path.name}: must reach alert, got {final}"
     else:
-        assert final == "none", f"{path.name}: {label} must stay none, got {final}"
+        assert final == "none", f"{path.name}: must stay none, got {final}"
