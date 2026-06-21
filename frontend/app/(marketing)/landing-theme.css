@@ -3228,3 +3228,309 @@ h4 {
     filter: brightness(0.92);
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   "See it on a real conversation" — liquid-glass phone + analysis card.
+   Replaces the old decision-trace evidence grid; both panels are frosted glass
+   floating over the video backdrop.
+   ────────────────────────────────────────────────────────────────────────── */
+.demo-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+/* Shared liquid-glass surface for both panels. Tinted dark so white text holds
+   over the bright golden footage while the frost still reads as glass. */
+.glass-phone,
+.analysis-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 24, 26, 0.46);
+  box-shadow:
+    0 34px 70px -28px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(30px) saturate(1.3);
+  -webkit-backdrop-filter: blur(30px) saturate(1.3);
+}
+
+/* Soft top sheen for the "liquid" read. */
+.glass-phone::before,
+.analysis-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0) 38%
+  );
+  pointer-events: none;
+}
+
+/* ── Phone ──────────────────────────────────────────────────────────────── */
+.glass-phone {
+  display: flex;
+  flex-direction: column;
+  min-height: 580px;
+  padding: 16px 15px 14px;
+  border-radius: 38px;
+  overflow: hidden;
+}
+
+.glass-phone-notch {
+  width: 92px;
+  height: 6px;
+  margin: 2px auto 16px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.phone-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 4px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.phone-avatar {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--coral);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.phone-who strong {
+  display: block;
+  color: #fff;
+  font-size: 15px;
+}
+
+.phone-who span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.phone-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 13px 0 4px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(201, 95, 74, 0.82);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.phone-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 2px 2px;
+}
+
+.phone-bubble {
+  max-width: 82%;
+  margin: 0;
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.phone-bubble.in {
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+  background: rgba(255, 255, 255, 0.17);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.phone-bubble.out {
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  background: rgba(13, 22, 23, 0.6);
+  color: #fff;
+}
+
+.phone-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 12px 4px 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.phone-foot-urgent {
+  color: #ef9079;
+}
+
+/* ── Analysis card ──────────────────────────────────────────────────────── */
+.analysis-card {
+  padding: 26px;
+  border-radius: 24px;
+}
+
+.analysis-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 18px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.analysis-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--amber);
+  color: var(--night);
+}
+
+.analysis-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.analysis-stat {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.analysis-stat strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.analysis-stat span {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.analysis-stat.risk {
+  border-color: rgba(201, 95, 74, 0.4);
+  background: rgba(201, 95, 74, 0.14);
+}
+
+.analysis-stat.risk strong {
+  color: #ef9079;
+}
+
+.analysis-stat.safe strong {
+  color: var(--green-bright);
+}
+
+.analysis-stages {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.stage-chip {
+  padding: 5px 13px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stage-chip.trust {
+  background: rgba(143, 213, 173, 0.16);
+  color: var(--green-bright);
+}
+
+.stage-chip.isolation {
+  background: rgba(201, 95, 74, 0.2);
+  color: #ef9079;
+}
+
+.analysis-signals-label {
+  margin-bottom: 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.analysis-signals {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.analysis-signals li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.analysis-signals li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  background: var(--amber);
+  transform: rotate(45deg);
+}
+
+.analysis-signals strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.analysis-summary {
+  margin: 22px 0 0;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 860px) {
+  .demo-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}

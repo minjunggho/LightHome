@@ -9,16 +9,19 @@ import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { AppShell } from "@/components/AppShell";
 import { Composer } from "@/components/genui/Composer";
 import { ConversationPanel } from "@/components/genui/ConversationPanel";
+import { HistoryView } from "@/components/genui/HistoryView";
+import { VoiceSummaryButton } from "@/components/genui/VoiceSummaryButton";
+import { harmfulMass } from "@/lib/analytics";
+import { sessionDisplayName } from "@/lib/session";
+import { startAllFeeds } from "@/lib/testFeed";
+import { useGenStore } from "@/lib/openui/store";
+import { useLiveLatest, useLiveSessions, useNow } from "@/lib/useLive";
 
 // The OpenUI Renderer touches `document`, so keep the canvas client-only.
 const GenCanvas = dynamic(
   () => import("@/components/genui/GenCanvas").then((m) => m.GenCanvas),
   { ssr: false },
 );
-import { sessionDisplayName } from "@/lib/session";
-import { startAllFeeds } from "@/lib/testFeed";
-import { useGenDashboard } from "@/lib/openui/useGenDashboard";
-import { useLiveSessions } from "@/lib/useLive";
 
 const SUGGESTIONS = [
   "Risk level across every conversation",
@@ -27,42 +30,97 @@ const SUGGESTIONS = [
   "A triage board sorted by status",
 ];
 
+type Tab = "build" | "history";
+
 export default function GenerativeDashboard() {
   const { sessions, connected } = useLiveSessions();
-  const { conversation, dashboardCode, isStreaming, streamingText, elapsed, send, clear } =
-    useGenDashboard();
+  const nowMs = useNow();
 
+  const dashboards = useGenStore((s) => s.dashboards);
+  const activeId = useGenStore((s) => s.activeId);
+  const isStreaming = useGenStore((s) => s.isStreaming);
+  const streamingText = useGenStore((s) => s.streamingText);
+  const elapsed = useGenStore((s) => s.elapsed);
+  const send = useGenStore((s) => s.send);
+  const newDashboard = useGenStore((s) => s.newDashboard);
+  const selectDashboard = useGenStore((s) => s.selectDashboard);
+  const deleteDashboard = useGenStore((s) => s.deleteDashboard);
+
+  const [tab, setTab] = useState<Tab>("build");
+
+  const active = useMemo(
+    () => dashboards.find((d) => d.id === activeId) ?? null,
+    [dashboards, activeId],
+  );
   const dataCount = sessions.length;
-  const active = conversation.length > 0 || dashboardCode !== null;
 
-  // The live snapshot handed to the model — the same /sessions the rest of the
-  // app reads, shaped for prompting. No raw message content (privacy holds here).
+  // The last exchange in the active dashboard — fed to the spoken summary.
+  const lastPrompt = useMemo(
+    () =>
+      [...(active?.conversation ?? [])].reverse().find((m) => m.role === "user")
+        ?.content ?? "",
+    [active],
+  );
+  const lastAnswer = useMemo(() => {
+    const a = [...(active?.conversation ?? [])]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    return a?.text || active?.code || "";
+  }, [active]);
+
+  // Latest parent read per session → lets the snapshot carry risk + stage, not
+  // just message count + status.
+  const sessionIds = useMemo(() => sessions.map((s) => s.session_id), [sessions]);
+  const latest = useLiveLatest(sessionIds);
+
+  // The live snapshot handed to the model — structural signals only (no raw
+  // message content; privacy by projection holds on this surface).
   const liveData = useMemo(
     () =>
-      sessions.map((s) => ({
-        conversation: sessionDisplayName(s.session_id),
-        messages: s.turns,
-        status: s.alert_level,
-      })),
-    [sessions],
+      sessions.map((s) => {
+        const rec = latest[s.session_id];
+        const risk = rec ? Math.round(harmfulMass(rec.stage_probabilities) * 100) : null;
+        return {
+          conversation: sessionDisplayName(s.session_id),
+          messages: s.turns,
+          status: s.alert_level,
+          risk_pct: risk,
+          dominant_stage: rec?.dominant_stage ?? null,
+        };
+      }),
+    [sessions, latest],
   );
 
   const submit = useCallback((text: string) => send(text, liveData), [send, liveData]);
-
   const startFeed = useCallback(() => {
     startAllFeeds();
   }, []);
 
+  const onNew = useCallback(() => {
+    newDashboard();
+    setTab("build");
+  }, [newDashboard]);
+  const openDashboard = useCallback(
+    (id: string) => {
+      selectDashboard(id);
+      setTab("build");
+    },
+    [selectDashboard],
+  );
+
+  const showWorkspace = tab === "build" && !!active;
+
   const aside = useMemo(
-    () => (
-      <ConversationPanel
-        messages={conversation}
-        streamingText={streamingText}
-        isStreaming={isStreaming}
-        onSubmit={submit}
-      />
-    ),
-    [conversation, streamingText, isStreaming, submit],
+    () =>
+      showWorkspace && active ? (
+        <ConversationPanel
+          messages={active.conversation}
+          streamingText={streamingText}
+          isStreaming={isStreaming}
+          onSubmit={submit}
+        />
+      ) : undefined,
+    [showWorkspace, active, streamingText, isStreaming, submit],
   );
 
   return (
@@ -70,18 +128,30 @@ export default function GenerativeDashboard() {
       title="Dashboard"
       subtitle="Describe a view of your live detector data — generated with OpenUI"
       actions={
-        active ? (
-          <button
-            onClick={clear}
-            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold text-ink shadow-card transition-colors hover:bg-surface-2"
-          >
-            + New dashboard
-          </button>
-        ) : undefined
+        <div className="flex items-center gap-2">
+          <Segmented tab={tab} onTab={setTab} historyCount={dashboards.length} />
+          {tab === "build" && active && (
+            <button
+              onClick={onNew}
+              className="rounded-lg border border-line bg-surface px-3 py-1.5 text-[13px] font-semibold text-ink shadow-card transition-colors hover:bg-surface-2"
+            >
+              + New
+            </button>
+          )}
+        </div>
       }
-      aside={active ? aside : undefined}
+      aside={aside}
     >
-      {active ? (
+      {tab === "history" ? (
+        <HistoryView
+          dashboards={dashboards}
+          activeId={activeId}
+          nowMs={nowMs}
+          onOpen={openDashboard}
+          onDelete={deleteDashboard}
+          onNew={onNew}
+        />
+      ) : active ? (
         <div className="flex h-[calc(100vh-200px)] min-h-[460px] flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Chip>
@@ -93,13 +163,25 @@ export default function GenerativeDashboard() {
             <Chip>
               {dataCount} conversation{dataCount === 1 ? "" : "s"} attached
             </Chip>
+            {lastAnswer && (
+              <VoiceSummaryButton
+                question={lastPrompt}
+                answer={lastAnswer}
+                disabled={isStreaming}
+              />
+            )}
           </div>
           <div className="min-h-0 flex-1">
             <GenCanvas
               library={openuiLibrary}
-              code={dashboardCode}
+              code={active.code}
               isStreaming={isStreaming}
               elapsed={elapsed}
+              answer={
+                active.code
+                  ? undefined
+                  : [...active.conversation].reverse().find((m) => m.role === "assistant")?.text
+              }
             />
           </div>
         </div>
@@ -112,6 +194,58 @@ export default function GenerativeDashboard() {
         />
       )}
     </AppShell>
+  );
+}
+
+function Segmented({
+  tab,
+  onTab,
+  historyCount,
+}: {
+  tab: Tab;
+  onTab: (t: Tab) => void;
+  historyCount: number;
+}) {
+  return (
+    <div className="inline-flex rounded-xl border border-line bg-surface-2 p-0.5">
+      <TabButton active={tab === "build"} onClick={() => onTab("build")}>
+        Build
+      </TabButton>
+      <TabButton active={tab === "history"} onClick={() => onTab("history")}>
+        History
+        {historyCount > 0 && (
+          <span
+            className={`tabular ml-1.5 rounded-full px-1.5 text-[11px] font-semibold ${
+              tab === "history" ? "bg-surface-2 text-ink-2" : "bg-surface text-ink-3"
+            }`}
+          >
+            {historyCount}
+          </span>
+        )}
+      </TabButton>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={`inline-flex items-center rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+        active ? "bg-surface text-ink shadow-card" : "text-ink-3 hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

@@ -15,11 +15,14 @@ export function GenCanvas({
   code,
   isStreaming,
   elapsed,
+  answer,
 }: {
   library: Library;
   code: string | null;
   isStreaming: boolean;
   elapsed: number | null;
+  /** assistant prose to surface when the reply produced no openui-lang */
+  answer?: string;
 }) {
   const [showSource, setShowSource] = useState(false);
 
@@ -63,6 +66,10 @@ export function GenCanvas({
           <ThemeProvider>
             <Renderer response={code} library={library} isStreaming={isStreaming} />
           </ThemeProvider>
+        ) : answer && !isStreaming ? (
+          <div className="mx-auto max-w-prose whitespace-pre-wrap rounded-2xl border border-line bg-surface-2 p-5 text-[14px] leading-relaxed text-ink-2">
+            {cleanProse(answer)}
+          </div>
         ) : (
           <div className="grid h-full place-items-center text-center text-sm text-ink-3">
             {isStreaming ? "Composing the dashboard…" : "The generated dashboard will render here."}
@@ -71,6 +78,15 @@ export function GenCanvas({
       </div>
     </div>
   );
+}
+
+// The model is instructed to render openui-lang; this only catches the rare
+// prose-only reply. Strip light markdown so it reads as plain copy.
+function cleanProse(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .trim();
 }
 
 function Spinner() {

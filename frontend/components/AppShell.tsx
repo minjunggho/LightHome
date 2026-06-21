@@ -33,12 +33,7 @@ export function AppShell({
         <aside className="sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col border-r border-line px-5 py-7 lg:flex">
           <Link href="/dashboard" className="flex items-center gap-2.5 px-1">
             <Beacon />
-            <span className="flex flex-col leading-none">
-              <span className="text-[1.3rem] font-bold tracking-tight text-ink">Lighthome</span>
-              <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3">
-                First 45 · grooming watch
-              </span>
-            </span>
+            <span className="text-[1.3rem] font-bold tracking-tight text-ink">LightHome</span>
           </Link>
 
           <nav className="mt-10 flex flex-col gap-1">
@@ -93,7 +88,7 @@ export function AppShell({
             {/* Mobile brand row */}
             <div className="mb-6 flex items-center gap-2.5 lg:hidden">
               <Beacon />
-              <span className="text-lg font-bold tracking-tight text-ink">Lighthome</span>
+              <span className="text-lg font-bold tracking-tight text-ink">LightHome</span>
             </div>
 
             <header className="flex flex-wrap items-start justify-between gap-4">
