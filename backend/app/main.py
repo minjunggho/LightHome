@@ -20,6 +20,14 @@ import asyncio
 import json
 import logging
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load backend/.env so PIPELINE_MODE / ANTHROPIC_API_KEY / PHOENIX_* reach the app
+# when served. override=False: a value already in the shell environment wins, so
+# tests (and `PIPELINE_MODE=live ...`) can pin behavior regardless of .env.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
 
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware

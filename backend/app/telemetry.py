@@ -46,9 +46,15 @@ def init_tracing() -> bool:
             os.environ.setdefault("PHOENIX_CLIENT_HEADERS", f"api_key={api_key}")
             os.environ.setdefault("OTEL_EXPORTER_OTLP_HEADERS", f"api_key={api_key}")
 
+        # PHOENIX_COLLECTOR_ENDPOINT is often the space/UI URL; the OTLP HTTP
+        # exporter must POST to the /v1/traces path or the UI route returns 405.
+        base = endpoint.rstrip("/")
+        traces_endpoint = base if base.endswith("/v1/traces") else base + "/v1/traces"
+
         tracer_provider = register(
             project_name=os.getenv("PHOENIX_PROJECT", "lighthome"),
-            endpoint=endpoint,
+            endpoint=traces_endpoint,
+            protocol="http/protobuf",
             auto_instrument=False,
         )
         AnthropicInstrumentor().instrument(tracer_provider=tracer_provider)
