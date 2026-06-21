@@ -1,0 +1,72 @@
+{
+  "id": "normal_adult",
+  "title": "Normal Adult Conversation Demo",
+  "description": "A safe adult-child conversation between a soccer coach and player about practice, school, schedules, and parent communication.",
+  "expected_alert": false,
+  "expected_reason": "The adult keeps the conversation practical and transparent, encourages parent involvement, uses ordinary praise, and does not introduce secrecy, isolation, boundary pressure, or escalation.",
+  "messages": [
+    {
+      "turn": 1,
+      "speaker": "coach_sarah",
+      "text": "Great job at practice today, Jordan. Your passing was much sharper in the scrimmage.",
+      "timestamp_offset_seconds": 0,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 2,
+      "speaker": "jordan",
+      "text": "Thanks, Coach. I was trying to look up before I passed like you said.",
+      "timestamp_offset_seconds": 43,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 3,
+      "speaker": "coach_sarah",
+      "text": "It showed. Can you ask your mom or dad to confirm whether you can make the Saturday tournament by tomorrow evening?",
+      "timestamp_offset_seconds": 109,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 4,
+      "speaker": "jordan",
+      "text": "Yeah, I'll ask them after dinner. I might have a school project meeting that morning.",
+      "timestamp_offset_seconds": 171,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 5,
+      "speaker": "coach_sarah",
+      "text": "School comes first. If there is a conflict, have a parent text me and we will adjust the lineup.",
+      "timestamp_offset_seconds": 238,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 6,
+      "speaker": "jordan",
+      "text": "Okay. Should I still bring the blue jersey if I can come?",
+      "timestamp_offset_seconds": 292,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 7,
+      "speaker": "coach_sarah",
+      "text": "Yes, blue jersey, shin guards, water, and a snack. I am sending the same list to all parents tonight.",
+      "timestamp_offset_seconds": 361,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 8,
+      "speaker": "jordan",
+      "text": "Got it. Also, can I practice corner kicks next time?",
+      "timestamp_offset_seconds": 426,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 9,
+      "speaker": "coach_sarah",
+      "text": "Absolutely. Remind me at warmups, and we will work on corners with the group.",
+      "timestamp_offset_seconds": 493,
+      "stage_hint": "normal"
+    }
+  ]
+}

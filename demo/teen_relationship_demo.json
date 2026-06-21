@@ -1,0 +1,79 @@
+{
+  "id": "teen_relationship",
+  "title": "Teen Relationship False Positive Demo",
+  "description": "A mutual, age-peer teen crush conversation with casual secrecy language but no adult power imbalance, isolation, pressure, or escalation.",
+  "expected_alert": false,
+  "expected_reason": "Both speakers are teens, both ask and answer questions, the secrecy is light and mutual, support figures remain available, and no one pressures the other or tries to isolate them.",
+  "messages": [
+    {
+      "turn": 1,
+      "speaker": "riley",
+      "text": "Did you survive algebra today or are we both pretending that quiz never happened?",
+      "timestamp_offset_seconds": 0,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 2,
+      "speaker": "jordan",
+      "text": "Barely survived. I guessed on the last two. You looked way calmer than me.",
+      "timestamp_offset_seconds": 47,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 3,
+      "speaker": "riley",
+      "text": "Fake calm. My hands were freezing. Do you still want to get smoothies after school Friday?",
+      "timestamp_offset_seconds": 113,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 4,
+      "speaker": "jordan",
+      "text": "Yeah, I do. Don't tell my mom yet lol, she gets way too excited if I even mention liking someone.",
+      "timestamp_offset_seconds": 189,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 5,
+      "speaker": "riley",
+      "text": "Same with my sister. She would make it a whole event. We can just say we're hanging out after school unless you want to tell people.",
+      "timestamp_offset_seconds": 266,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 6,
+      "speaker": "jordan",
+      "text": "Hanging out sounds good. I'm nervous but in a good way.",
+      "timestamp_offset_seconds": 329,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 7,
+      "speaker": "riley",
+      "text": "Me too. If it feels awkward we can just talk about soccer and the quiz and pretend we're normal people.",
+      "timestamp_offset_seconds": 401,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 8,
+      "speaker": "jordan",
+      "text": "Deal. My dad is picking me up at 4:30, so I have to be outside by then.",
+      "timestamp_offset_seconds": 472,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 9,
+      "speaker": "riley",
+      "text": "Cool, my mom can pick me up around then too. Want to meet by the library doors?",
+      "timestamp_offset_seconds": 538,
+      "stage_hint": "normal"
+    },
+    {
+      "turn": 10,
+      "speaker": "jordan",
+      "text": "Yeah. And if either of us gets too nervous, no pressure. We can just be friends and laugh about it later.",
+      "timestamp_offset_seconds": 612,
+      "stage_hint": "normal"
+    }
+  ]
+}
