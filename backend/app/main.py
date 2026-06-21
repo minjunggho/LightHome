@@ -20,18 +20,31 @@ import asyncio
 import json
 import logging
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load backend/.env so PIPELINE_MODE / ANTHROPIC_API_KEY / PHOENIX_* reach the app
+# when served. override=False: a value already in the shell environment wins, so
+# tests (and `PIPELINE_MODE=live ...`) can pin behavior regardless of .env.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
 
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from . import pipeline
 from .demo_data import mock_decision_record
+from .features import Message
 from .models import AnalyzeRequest, DecisionRecord, ResetRequest, StageProbabilities, View
 from .record_store import InMemoryRecordSink
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Lighthome backend", version="0.1.0-mock")
+# "mock" (turn-count ramp, content-blind) | "live" (real extractors + synthesis)
+PIPELINE_MODE = os.getenv("PIPELINE_MODE", "mock").lower()
+
+app = FastAPI(title="Lighthome backend", version="0.2.0")
 
 # Person 2's Next.js dev server talks to this directly during the build.
 app.add_middleware(
@@ -41,10 +54,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory prior per session so the mock's posterior chains turn-to-turn and
-# /session/reset has real meaning. The REAL pipeline will keep this in the
-# StateStore (Contract D) instead — this dict is mock scaffolding only.
+# Per-session prior (posterior chains turn-to-turn) and, in live mode, the
+# conversation-so-far the extractors run over. In-process scaffolding; the real
+# deployment keeps this in the StateStore (Contract D) via the bridge.
 _PRIORS: dict[str, StageProbabilities] = {}
+_HISTORY: dict[str, list[Message]] = {}
 
 # RecordSink (Contract E). Person 1 only CALLS this. Default is the in-memory
 # sink (mock/demo). Set STORE_BACKEND=integration to fan out to Person 3's Redis
@@ -71,19 +85,33 @@ sink = _build_sink()
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "mode": "mock", "version": app.version}
+    return {"status": "ok", "mode": PIPELINE_MODE, "version": app.version}
 
 
 @app.post("/analyze-message")
 def analyze_message(req: AnalyzeRequest, view: View = Query("parent")) -> dict:
-    """Contract B. Returns a DecisionRecord projected to `parent` or `tns`."""
+    """Contract B. Returns a DecisionRecord projected to `parent` or `tns`.
+
+    PIPELINE_MODE=live runs the real pipeline (extractors -> Claude synthesis ->
+    Bayesian update -> alert engine); otherwise the content-blind mock.
+    """
     prior = _PRIORS.get(req.session_id)
-    record = mock_decision_record(
-        session_id=req.session_id,
-        turn=req.turn,
-        text=req.text,
-        prior=prior,
-    )
+
+    if PIPELINE_MODE == "live":
+        msg: Message = {
+            "turn": req.turn,
+            "speaker": req.speaker,
+            "text": req.text,
+            "t_offset_sec": req.t_offset_sec,
+        }
+        history = _HISTORY.setdefault(req.session_id, [])
+        history.append(msg)
+        record = pipeline.analyze(req.session_id, history, prior)
+    else:
+        record = mock_decision_record(
+            session_id=req.session_id, turn=req.turn, text=req.text, prior=prior
+        )
+
     # The current posterior becomes the next message's prior.
     _PRIORS[req.session_id] = record.stage_probabilities
     sink.emit(record.model_dump())  # capture for the dashboard read/stream path
@@ -94,6 +122,7 @@ def analyze_message(req: AnalyzeRequest, view: View = Query("parent")) -> dict:
 def reset_session(req: ResetRequest) -> dict:
     """Replay control — wipe server state so a conversation restarts at turn 0."""
     _PRIORS.pop(req.session_id, None)
+    _HISTORY.pop(req.session_id, None)
     sink.reset(req.session_id)
     return {"session_id": req.session_id, "reset": True}
 

@@ -4,8 +4,10 @@ Run: backend/.venv/bin/python -m pytest backend/tests -q
 """
 
 import json
+import os
 import pathlib
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.demo_data import sample_records
@@ -57,7 +59,8 @@ def test_no_detector_code_reads_label():
     """Coordination rule: detection code must never READ the ground-truth label
     field. We forbid actual access patterns, not the word 'label' in prose."""
     app_dir = ROOT / "backend" / "app"
-    detector_files = ["features.py", "bayes.py", "claude_synthesis.py", "alert.py"]
+    detector_files = ["features.py", "bayes.py", "claude_synthesis.py", "alert.py",
+                      "pipeline.py", "embeddings.py"]
     forbidden = ['["label"]', "['label']", ".label", 'get("label"', "get('label'",
                  'conversation_label"]', "conversation_label']", ".conversation_label",
                  'get("conversation_label"', "get('conversation_label'"]
@@ -87,6 +90,11 @@ def test_analyze_endpoint_tns_view_full_record():
     DecisionRecord.model_validate(r.json())  # full record validates
 
 
+@pytest.mark.skipif(
+    os.environ.get("PIPELINE_MODE", "mock").lower() == "live",
+    reason="asserts the mock's turn-count ramp; the live pipeline is content-based "
+    "(see test_acceptance.py for live discrimination)",
+)
 def test_ramp_escalates_and_reset_clears():
     sid = "ramp-1"
     client.post("/session/reset", json={"session_id": sid})
