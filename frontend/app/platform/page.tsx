@@ -8,7 +8,6 @@ import { ConditionsTable } from "@/components/ConditionsTable";
 import { FeatureGrid } from "@/components/FeatureGrid";
 import { LiveDot } from "@/components/LiveDot";
 import { Panel } from "@/components/Panel";
-import { ProbabilityBar } from "@/components/ProbabilityBar";
 import { StatCard, StatGroup } from "@/components/StatCard";
 import { ALERT_META, STAGE_META } from "@/components/theme";
 import type { AlertLevel, DecisionRecord, SessionSummary } from "@/lib/api";
@@ -138,13 +137,6 @@ export default function PlatformPanel() {
                   <ConditionsTable
                     conditions={current.alert.conditions}
                     reason={current.alert.reason}
-                  />
-                </Panel>
-                <Panel title="Conversation pattern">
-                  <ProbabilityBar
-                    prior={current.prior_probabilities}
-                    posterior={current.stage_probabilities}
-                    plain
                   />
                 </Panel>
                 <Panel
